@@ -1,14 +1,81 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8">
-    <link rel="icon" href="/favicon.ico">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vite App</title>
-    <script type="module" crossorigin src="/assets/index-t-RQj8QJ.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-Ctg1Y002.css">
-  </head>
-  <body>
-    <div id="app"></div>
-  </body>
+<html>
+<head>
+    <title>Demo API 测试</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>用户管理</h1>
+    
+    <div>
+        <h3>创建用户</h3>
+        <input type="text" id="username" placeholder="用户名">
+        <input type="email" id="email" placeholder="邮箱">
+        <input type="number" id="age" placeholder="年龄">
+        <button onclick="createUser()">创建</button>
+    </div>
+    
+    <div>
+        <h3>用户列表</h3>
+        <button onclick="getUsers()">刷新</button>
+        <ul id="userList"></ul>
+    </div>
+    
+    <div>
+        <h3>健康检查</h3>
+        <button onclick="healthCheck()">检查</button>
+        <span id="healthStatus"></span>
+    </div>
+
+    <script>
+        const API_URL = 'http://121.89.83.246:8080/api';
+        
+        async function healthCheck() {
+            const res = await fetch(`${API_URL}/users/health`);
+            const data = await res.json();
+            document.getElementById('healthStatus').innerText = JSON.stringify(data);
+        }
+        
+        async function getUsers() {
+            const res = await fetch(`${API_URL}/users`);
+            const users = await res.json();
+            const userList = document.getElementById('userList');
+            userList.innerHTML = users.map(u => 
+                `<li>${u.username} - ${u.email} - ${u.age}岁 <button onclick="deleteUser(${u.id})">删除</button></li>`
+            ).join('');
+        }
+        
+        async function createUser() {
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const age = document.getElementById('age').value;
+            
+            const res = await fetch(`${API_URL}/users`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, age: parseInt(age) })
+            });
+            
+            if (res.ok) {
+                alert('创建成功');
+                getUsers();
+            } else {
+                alert('创建失败');
+            }
+        }
+        
+        async function deleteUser(id) {
+            const res = await fetch(`${API_URL}/users/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                alert('删除成功');
+                getUsers();
+            } else {
+                alert('删除失败');
+            }
+        }
+        
+        // 页面加载时获取用户列表
+        getUsers();
+    </script>
+</body>
 </html>
